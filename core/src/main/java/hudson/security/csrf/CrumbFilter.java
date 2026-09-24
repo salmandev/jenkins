@@ -132,11 +132,7 @@ public class CrumbFilter implements CompatibleFilter {
             String crumbSalt = crumbIssuer.getDescriptor().getCrumbSalt();
 
             boolean valid = false;
-            String crumb = extractCrumbFromRequest(httpRequest, crumbFieldName);
-            if (crumb == null) {
-                // compatibility for clients that hard-code the default crumb name up to Jenkins 1.TODO
-                crumb = extractCrumbFromRequest(httpRequest, ".crumb");
-            }
+            String crumb = getCrumbFromRequest(httpRequest, crumbFieldName);
 
             // JENKINS-40344: Don't spam the log just because a session is expired
             Level level = Jenkins.getAuthentication2() instanceof AnonymousAuthenticationToken ? Level.FINE : Level.WARNING;
@@ -158,6 +154,15 @@ public class CrumbFilter implements CompatibleFilter {
         } else {
             chain.doFilter(request, response);
         }
+    }
+
+    static String getCrumbFromRequest(HttpServletRequest httpRequest, String crumbFieldName) {
+        String crumb = extractCrumbFromRequest(httpRequest, crumbFieldName);
+        if (crumb == null) {
+            // compatibility for clients that hard-code the default crumb name up to Jenkins 1.TODO
+            crumb = extractCrumbFromRequest(httpRequest, ".crumb");
+        }
+        return crumb;
     }
 
     private String extractCrumbFromRequest(HttpServletRequest httpRequest, String crumbFieldName) {
